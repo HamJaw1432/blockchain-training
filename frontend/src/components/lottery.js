@@ -47,11 +47,16 @@ function Lottery() {
       provider
     );
     let ownerAdd =  await contract.owner();
-    if (ownerAdd === currentAddress) {
+    if(parseInt((currentAddress)._hex, 16) === 0)
+    {
+      setIsAdmin(false);
+      setIsOwner(false);
+    }
+    else if (ownerAdd === currentAddress) {
       setIsAdmin(true);
       setIsOwner(true);
     }
-    else if (contract.hasRole(contract.MANAGER, currentAddress))
+    else if (await contract.hasRole(contract.MANAGER, currentAddress))
     {
       setIsAdmin(true);
     }
@@ -97,13 +102,16 @@ function Lottery() {
       LotteryAdd,
       '20'
     );
-    delay(1000).then(() => console.log('ran after 1 second1 passed'));
-    try {
-      await lotteryContract.enter();
-      console.log("Entered!!");
-    } catch (err) {
-      console.log("You have not approved the transaction, please do that first!");
-    }
+    delay(5000).then(async () => {
+      console.log('ran after 1 second1 passed');
+      try {
+        await lotteryContract.enter();
+        console.log("Entered!!");
+      } catch (err) {
+        console.log("You have not approved the transaction, please do that first!");
+      }
+    });
+
   }
 
   async function handlePickWinner() {
