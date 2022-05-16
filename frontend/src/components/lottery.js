@@ -14,6 +14,9 @@ function Lottery() {
   const [lastWonBy, setLastWonBy] = useState("0x0000000000000000000000000000000000000000");
   const [totalPool, setTotalPool] = useState(0);
 
+  const [addManager, setAddManager] = useState("");
+  const [removeManager, setRemoveManager] = useState("");
+
   const getTotalPool = async () => {
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     let contract = new ethers.Contract(
@@ -48,6 +51,10 @@ function Lottery() {
       setIsAdmin(true);
       setIsOwner(true);
     }
+    else if (contract.hasRole(contract.MANAGER, currentAddress))
+    {
+      setIsAdmin(true);
+    }
   };
 
   const getLastWinner = async () => {
@@ -67,6 +74,11 @@ function Lottery() {
     getLastWinner();
   });
 
+  function delay(time) {
+    return new Promise(resolve => setTimeout(resolve, time));
+  }
+  
+  
   async function handleEnter() {
     console.log('here');
     const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -85,6 +97,7 @@ function Lottery() {
       LotteryAdd,
       '20'
     );
+    delay(1000).then(() => console.log('ran after 1 second1 passed'));
     try {
       await lotteryContract.enter();
       console.log("Entered!!");
@@ -125,11 +138,55 @@ function Lottery() {
     }
   }
 
+  const handleAddManager = async () => {
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    let lotteryContract = new ethers.Contract(
+      LotteryAdd,
+      lotteryAbi,
+      signer
+    );
+    try {
+      await lotteryContract.addManager(addManager);
+      console.log("Added!!");
+    } catch (err) {
+      console.log("You have not approved the transaction, please do that first!");
+    }
+  };
+
+  const handleRemoveManager = async () => {
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    let lotteryContract = new ethers.Contract(
+      LotteryAdd,
+      lotteryAbi,
+      signer
+    );
+    try {
+      await lotteryContract.removeManager(removeManager);
+      console.log("Removed!!");
+    } catch (err) {
+      console.log("You have not approved the transaction, please do that first!");
+    }
+  };
+
   return (
     <form className="form-container" onSubmit={(e) => e.preventDefault()}>
       <div className="total-pool">Total Pool: {totalPool} MOK</div>
       <div className="last-won-by">Last Won By: {lastWonBy} </div>
       <div className="enter-lottery btn" onClick={() => handleEnter()}>Enter Lottery</div>
+      {isOwner && 
+        <div className="add-remove">
+            <div className="two-p-text">
+              <div className="two-p-p1" onClick={() => handleAddManager()}>Add Manager</div>
+              <input className="two-p-p2" type="text" placeholder="Address" onChange={(e) => setAddManager(e.target.value)}/>
+            </div>
+            <div className="two-p-text">
+              <div className="two-p-p1" onClick={() => handleRemoveManager()}>Remove Manager</div>
+              <input className="two-p-p2" type="text" placeholder="Address" onChange={(e) => setRemoveManager(e.target.value)}/>
+            </div>
+        </div>
+      }
       {isAdmin && <div className="pick-winner btn" onClick={() => handlePickWinner()}>Pick Winner</div>}
       {isOwner && <div className="get-fees btn" onClick={() => handleFees()}>Get Fees</div>}
       <div className="current-address">Current Address Is: {currentAddress}</div>
